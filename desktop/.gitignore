@@ -1,0 +1,13 @@
+# Build artifacts
+node_modules/
+dist/
+
+# Bundled PHP runtime (~75 MB) — fetch it instead of committing it:
+#   curl -L -o php.zip https://downloads.php.net/~windows/releases/php-8.4.23-nts-Win32-vs17-x64.zip
+#   unzip php.zip -d resources/php   (keep resources/php/php.ini from this repo)
+#   curl -L -o resources/php/cacert.pem https://curl.se/ca/cacert.pem
+resources/php/*
+!resources/php/php.ini
+
+# Contains real SMTP credentials + APP_KEY — never commit. See env.desktop.example.
+resources/env.desktop

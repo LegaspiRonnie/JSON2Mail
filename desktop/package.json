@@ -1,0 +1,65 @@
+{
+  "name": "json2mail-desktop",
+  "productName": "Json2Mail",
+  "version": "1.0.0",
+  "description": "Paste JSON, get a branded email — desktop edition.",
+  "author": "Ronnie Legaspi <ronnielegaspi98@gmail.com>",
+  "license": "MIT",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win"
+  },
+  "build": {
+    "appId": "com.ronnielegaspi.json2mail",
+    "productName": "Json2Mail",
+    "files": [
+      "main.js"
+    ],
+    "extraResources": [
+      {
+        "from": "resources/php",
+        "to": "php"
+      },
+      {
+        "from": "../api",
+        "to": "app",
+        "filter": [
+          "**/*",
+          "!.env*",
+          "!tests/**",
+          "!node_modules/**",
+          "!.git*",
+          "!storage/logs/*.log",
+          "!storage/framework/cache/data/**",
+          "!storage/framework/sessions/*",
+          "!storage/framework/views/*.php",
+          "!bootstrap/cache/config.php",
+          "!bootstrap/cache/routes-*.php",
+          "!Dockerfile",
+          "!phpunit.xml"
+        ]
+      },
+      {
+        "from": "resources/router.php",
+        "to": "app/router.php"
+      },
+      {
+        "from": "resources/env.desktop",
+        "to": "app/.env"
+      }
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true
+    }
+  },
+  "devDependencies": {
+    "electron": "^43.1.0",
+    "electron-builder": "^26.15.3"
+  }
+}

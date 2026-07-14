@@ -1,8 +1,10 @@
 import { useMemo, useRef, useState } from 'react';
 import { validatePayload, validateAttachment } from './lib/validatePayload';
 
-// Vite exposes env vars prefixed VITE_. Fallback keeps zero-config dev working.
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8000';
+// Vite exposes env vars prefixed VITE_. Fallback keeps zero-config dev working;
+// production builds without VITE_API_URL (the desktop app) are served by the
+// same Laravel instance they call, so relative URLs are correct there.
+const API_BASE = import.meta.env.VITE_API_URL ?? (import.meta.env.DEV ? 'http://127.0.0.1:8000' : '');
 
 const PLACEHOLDER = `{
   "receiver": "example@email.com",
