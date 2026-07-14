@@ -23,8 +23,19 @@ class JsonMailable extends Mailable
 
     public function content(): Content
     {
+        // Why a Blade view now (vs the earlier htmlString): the email is the
+        // product's visible output, so it gets a real branded template. The
+        // "no Blade views" rule targets web pages — the SPA owns those; email
+        // bodies are rendered documents, which is exactly what Blade is for.
         return new Content(
-            htmlString: nl2br(e($this->emailMessage)),
+            view: 'emails.json-mail',
+            with: [
+                'emailSubject'   => $this->emailSubject,
+                'emailMessage'   => $this->emailMessage,
+                'attachmentName' => $this->attachmentFile
+                    ? basename($this->attachmentFile->getClientOriginalName())
+                    : null,
+            ],
         );
     }
 
