@@ -7,7 +7,8 @@ FROM php:8.4-apache
 RUN apt-get update && apt-get install -y --no-install-recommends \
         libzip-dev unzip \
     && docker-php-ext-install zip \
-    && a2enmod rewrite \
+    && a2dismod mpm_event mpm_worker \
+    && a2enmod mpm_prefork rewrite \
     && rm -rf /var/lib/apt/lists/*
 
 # Point Apache at Laravel's public/ directory
