@@ -4,10 +4,16 @@ FROM php:8.4-apache
 
 # System deps + PHP extensions Laravel needs (mbstring ships built-in on 8.x images;
 # zip/curl cover Composer and the mailer transport).
+# apt upgrading apache2 can auto-enable mpm_event alongside the image's
+# mpm_prefork ("More than one MPM loaded", AH00534). mod_php requires
+# prefork — remove all other MPM symlinks and declare prefork explicitly.
 RUN apt-get update && apt-get install -y --no-install-recommends \
         libzip-dev unzip \
     && docker-php-ext-install zip \
-    && a2dismod mpm_event mpm_worker \
+    && rm -f /etc/apache2/mods-enabled/mpm_event.load \
+             /etc/apache2/mods-enabled/mpm_event.conf \
+             /etc/apache2/mods-enabled/mpm_worker.load \
+             /etc/apache2/mods-enabled/mpm_worker.conf \
     && a2enmod mpm_prefork rewrite \
     && rm -rf /var/lib/apt/lists/*
 

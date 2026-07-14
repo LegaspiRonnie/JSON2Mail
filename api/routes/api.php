@@ -7,3 +7,7 @@ use Illuminate\Support\Facades\Route;
 // a free relay for spam. 5/min is generous for a human, useless for abuse.
 Route::post('/send-email', SendEmailController::class)
     ->middleware('throttle:5,1');
+
+Route::get('/test', function () {
+    return 'health is up';
+});
