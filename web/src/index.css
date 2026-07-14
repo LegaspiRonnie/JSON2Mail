@@ -14,7 +14,7 @@ body {
 }
 
 .container {
-  max-width: 640px;
+  max-width: 1080px;
   margin: 0 auto;
   padding: 2rem 1rem 4rem;
 }
@@ -33,12 +33,69 @@ h1 {
   color: #5a6478;
 }
 
+/* Two columns: workflow/prompt on the left, the send form on the right.
+   Stacks on narrow screens. */
+.layout {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
 .panel {
   background: #fff;
   border: 1px solid #dde1e8;
   border-radius: 8px;
   padding: 1rem;
   margin-bottom: 1rem;
+}
+
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.panel-head label {
+  margin-bottom: 0;
+}
+
+.panel-title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.steps {
+  margin: 0.5rem 0 1rem;
+  padding-left: 1.25rem;
+  font-size: 0.92rem;
+}
+
+.steps li + li {
+  margin-top: 0.4rem;
+}
+
+.gpt-prompt {
+  margin: 0;
+  padding: 0.75rem;
+  max-height: 340px;
+  overflow: auto;
+  background: #f2f4f8;
+  border: 1px solid #dde1e8;
+  border-radius: 6px;
+  font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+  font-size: 0.78rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: #333c50;
 }
 
 label {
@@ -110,7 +167,8 @@ dd {
   white-space: pre-wrap;
 }
 
-button {
+/* Primary action */
+.send-btn {
   width: 100%;
   padding: 0.8rem;
   font-size: 1rem;
@@ -122,13 +180,46 @@ button {
   cursor: pointer;
 }
 
-button:hover:not(:disabled) {
+.send-btn:hover:not(:disabled) {
   background: #244cc0;
 }
 
-button:disabled {
+.send-btn:disabled {
   background: #aab4c8;
   cursor: not-allowed;
+}
+
+/* Small secondary actions (copy prompt, paste clipboard) */
+.mini-btn {
+  padding: 0.3rem 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #2f5fde;
+  background: #eef2fd;
+  border: 1px solid #c5d2f5;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.mini-btn:hover {
+  background: #dfe7fb;
+}
+
+.link-btn {
+  display: inline-block;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #2f5fde;
+  background: #eef2fd;
+  border: 1px solid #c5d2f5;
+  border-radius: 6px;
+  text-decoration: none;
+}
+
+.link-btn:hover {
+  background: #dfe7fb;
 }
 
 .result {
