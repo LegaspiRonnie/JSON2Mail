@@ -28,7 +28,8 @@
           <tr>
             <td style="background-color:#1e3a8a; padding:24px 32px;">
               <span style="font-family:Arial, Helvetica, sans-serif; font-size:20px; font-weight:bold; color:#ffffff; letter-spacing:0.5px;">
-                json<span style="color:#93c5fd;">2</span>mail
+                From: Ronnie Legaspi 
+                
               </span>
             </td>
           </tr>
@@ -70,7 +71,7 @@
           <tr>
             <td style="background-color:#f8f9fc; border-top:1px solid #e3e7ee; padding:18px 32px;">
               <p style="margin:0; font-family:Arial, Helvetica, sans-serif; font-size:12px; line-height:1.6; color:#8a93a6;">
-                Sent via <strong style="color:#1e3a8a;">json2mail</strong> — JSON in, email out.
+                Sent via <strong style="color:#1e3a8a;">Ronnie's json2mail</strong> — JSON in, email out.
               </p>
             </td>
           </tr>
