@@ -48,6 +48,14 @@ return [
             'timeout' => null,
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
+        // Why an HTTPS-API transport alongside smtp: hosting free tiers block
+        // outbound SMTP ports 25/465/587 (spam prevention); Brevo delivers over
+        // HTTPS/443, which is never blocked. MAIL_MAILER picks the transport per
+        // environment — smtp locally, brevo in production. Zero changes to
+        // EmailService or JsonMailable: the Mail facade abstracts the transport.
+        'brevo' => [
+            'transport' => 'brevo',
+        ],
 
         'ses' => [
             'transport' => 'ses',
