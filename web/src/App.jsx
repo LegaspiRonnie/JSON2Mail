@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { validatePayload, validateAttachment } from './lib/validatePayload';
 
 // Vite exposes env vars prefixed VITE_. The fallback targets the local
@@ -42,6 +42,86 @@ function stripFences(text) {
   return match ? match[1] : text;
 }
 
+/* --- Inline icon set (stroke style, inherits currentColor) — keeps the
+       "no extra packages" rule while giving the UI a proper icon language. */
+function Icon({ d, children, size = 18 }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {d ? <path d={d} /> : children}
+    </svg>
+  );
+}
+
+const icons = {
+  mail: (size) => (
+    <Icon size={size}>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="m3 7 9 6 9-6" />
+    </Icon>
+  ),
+  sparkles: (size) => (
+    <Icon size={size} d="M12 3l1.9 5.8a2 2 0 0 0 1.3 1.3L21 12l-5.8 1.9a2 2 0 0 0-1.3 1.3L12 21l-1.9-5.8a2 2 0 0 0-1.3-1.3L3 12l5.8-1.9a2 2 0 0 0 1.3-1.3L12 3z" />
+  ),
+  copy: (size) => (
+    <Icon size={size}>
+      <rect x="9" y="9" width="12" height="12" rx="2" />
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+    </Icon>
+  ),
+  check: (size) => <Icon size={size} d="M20 6 9 17l-5-5" />,
+  clipboard: (size) => (
+    <Icon size={size}>
+      <rect x="8" y="2" width="8" height="4" rx="1" />
+      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+    </Icon>
+  ),
+  paperclip: (size) => (
+    <Icon size={size} d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+  ),
+  send: (size) => (
+    <Icon size={size}>
+      <path d="M22 2 11 13" />
+      <path d="M22 2 15 22l-4-9-9-4 20-7z" />
+    </Icon>
+  ),
+  code: (size) => (
+    <Icon size={size}>
+      <path d="m16 18 6-6-6-6" />
+      <path d="m8 6-6 6 6 6" />
+    </Icon>
+  ),
+  external: (size) => (
+    <Icon size={size}>
+      <path d="M15 3h6v6" />
+      <path d="M10 14 21 3" />
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+    </Icon>
+  ),
+  alert: (size) => (
+    <Icon size={size}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 8v4" />
+      <path d="M12 16h.01" />
+    </Icon>
+  ),
+  eye: (size) => (
+    <Icon size={size}>
+      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" />
+      <circle cx="12" cy="12" r="3" />
+    </Icon>
+  ),
+};
+
 export default function App() {
   const [jsonText, setJsonText] = useState('');
   const [file, setFile] = useState(null);
@@ -49,7 +129,26 @@ export default function App() {
   // result: null | { type: 'success' | 'error', messages: string[] }
   const [result, setResult] = useState(null);
   const [promptCopied, setPromptCopied] = useState(false);
+  // null = checking, true/false once known
+  const [apiOnline, setApiOnline] = useState(null);
   const fileInputRef = useRef(null);
+
+  // Live API status in the header: /api/test is inside the CORS'd api/* paths,
+  // so the browser can read it from any allowed origin.
+  useEffect(() => {
+    let cancelled = false;
+    async function ping() {
+      try {
+        const res = await fetch(`${API_BASE}/api/test`, { headers: { Accept: 'text/plain' } });
+        if (!cancelled) setApiOnline(res.ok);
+      } catch {
+        if (!cancelled) setApiOnline(false);
+      }
+    }
+    ping();
+    const id = setInterval(ping, 30000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
 
   // Why useMemo instead of validating in a change handler: validation is a pure
   // function of the current text/file, so deriving it keeps a single source of
@@ -141,17 +240,29 @@ export default function App() {
 
   return (
     <main className="container">
-      <header>
-        <h1>json2mail</h1>
-        <p className="tagline">
-          Paste a job description into the custom GPT, paste its JSON here, and send it as an email.
-        </p>
+      <header className="site-header">
+        <div className="brand">
+          <span className="brand-mark">{icons.mail(24)}</span>
+          <div>
+            <h1>
+              Json2Mail
+              <span className="brand-pill">{icons.sparkles(12)} GPT-powered</span>
+            </h1>
+            <p className="tagline">
+              Paste a job description into the custom GPT, paste its JSON here, and send it as an email.
+            </p>
+          </div>
+        </div>
+        <div className={`api-status ${apiOnline === null ? 'checking' : apiOnline ? 'online' : 'offline'}`}>
+          <span className="dot" />
+          {apiOnline === null ? 'Checking API…' : apiOnline ? 'API online' : 'API offline'}
+        </div>
       </header>
 
       <div className="layout">
         <aside className="sidebar">
           <section className="panel">
-            <h2 className="panel-title">How it works</h2>
+            <h2 className="panel-title">{icons.sparkles(16)} How it works</h2>
             <ol className="steps">
               <li>Copy the prompt below into a ChatGPT <strong>custom GPT</strong> (or any chat).</li>
               <li>Paste a <strong>job description</strong> into that chat.</li>
@@ -159,15 +270,16 @@ export default function App() {
               <li>Paste the JSON here, attach your CV, hit <strong>Send Email</strong>.</li>
             </ol>
             <a className="link-btn" href="https://chatgpt.com/" target="_blank" rel="noreferrer">
-              Open ChatGPT ↗
+              Open ChatGPT {icons.external(14)}
             </a>
           </section>
 
           <section className="panel">
             <div className="panel-head">
-              <h2 className="panel-title">Custom GPT prompt</h2>
-              <button type="button" className="mini-btn" onClick={copyPrompt}>
-                {promptCopied ? 'Copied ✓' : 'Copy'}
+              <h2 className="panel-title">{icons.code(16)} Custom GPT prompt</h2>
+              <button type="button" className={`mini-btn ${promptCopied ? 'copied' : ''}`} onClick={copyPrompt}>
+                {promptCopied ? icons.check(14) : icons.copy(14)}
+                {promptCopied ? 'Copied' : 'Copy'}
               </button>
             </div>
             <pre className="gpt-prompt">{GPT_PROMPT}</pre>
@@ -177,9 +289,9 @@ export default function App() {
         <div className="content">
           <section className="panel">
             <div className="panel-head">
-              <label htmlFor="json-input">JSON from the GPT</label>
+              <label htmlFor="json-input" className="label-icon">{icons.code(16)} JSON from the GPT</label>
               <button type="button" className="mini-btn" onClick={pasteFromClipboard}>
-                Paste from clipboard
+                {icons.clipboard(14)} Paste from clipboard
               </button>
             </div>
             <textarea
@@ -197,11 +309,16 @@ export default function App() {
                 {payload.errors.map((err) => <li key={err}>{err}</li>)}
               </ul>
             )}
-            {payload.status === 'valid' && <p className="ok">✓ Valid JSON</p>}
+            {payload.status === 'valid' && (
+              <p className="ok">{icons.check(15)} Valid JSON — ready to send</p>
+            )}
           </section>
 
           <section className="panel">
-            <label htmlFor="file-input">Attachment (optional — pdf, docx, png, jpg · max 10 MB)</label>
+            <label htmlFor="file-input" className="label-icon">
+              {icons.paperclip(16)} Attachment
+              <span className="label-hint">optional — pdf, docx, png, jpg · max 10 MB</span>
+            </label>
             <input
               id="file-input"
               ref={fileInputRef}
@@ -218,32 +335,38 @@ export default function App() {
 
           {payload.status === 'valid' && (
             <section className="panel preview">
-              <h2>Preview</h2>
-              <dl>
-                <dt>To</dt>
-                <dd>{payload.data.receiver}</dd>
-                <dt>Subject</dt>
-                <dd>{payload.data.subject}</dd>
-                <dt>Message</dt>
-                {/* white-space: pre-wrap in CSS preserves the user's line breaks,
-                    matching how the API renders them (nl2br). */}
-                <dd className="message-body">{payload.data.message}</dd>
+              <h2 className="panel-title">{icons.eye(16)} Email preview</h2>
+              <div className="email-card">
+                <div className="email-row">
+                  <span className="email-key">To</span>
+                  <span className="email-val">{payload.data.receiver}</span>
+                </div>
+                <div className="email-row">
+                  <span className="email-key">Subject</span>
+                  <span className="email-val email-subject">{payload.data.subject}</span>
+                </div>
                 {file && (
-                  <>
-                    <dt>Attachment</dt>
-                    <dd>{file.name}</dd>
-                  </>
+                  <div className="email-row">
+                    <span className="email-key">Attach</span>
+                    <span className="email-val attachment-chip">{icons.paperclip(13)} {file.name}</span>
+                  </div>
                 )}
-              </dl>
+                {/* white-space: pre-wrap preserves the user's line breaks,
+                    matching how the API renders them (nl2br). */}
+                <div className="email-body">{payload.data.message}</div>
+              </div>
             </section>
           )}
 
           <button type="button" className="send-btn" onClick={handleSend} disabled={!canSend}>
-            {sending ? 'Sending…' : 'Send Email'}
+            {icons.send(18)} {sending ? 'Sending…' : 'Send Email'}
           </button>
 
           {result && (
             <div className={`result ${result.type}`} role="status">
+              <span className="result-icon">
+                {result.type === 'success' ? icons.check(18) : icons.alert(18)}
+              </span>
               <ul>
                 {result.messages.map((msg) => <li key={msg}>{msg}</li>)}
               </ul>
@@ -251,6 +374,11 @@ export default function App() {
           )}
         </div>
       </div>
+
+      <footer className="site-footer">
+        Built by <a href="https://ronnie-legaspi-portfolio.vercel.app/" target="_blank" rel="noreferrer">Ronnie Legaspi</a>
+        <span className="footer-sep">·</span> Laravel + React <span className="footer-sep">·</span> {icons.mail(13)} json2mail
+      </footer>
     </main>
   );
 }
