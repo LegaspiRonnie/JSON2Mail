@@ -37,7 +37,8 @@
           "!bootstrap/cache/config.php",
           "!bootstrap/cache/routes-*.php",
           "!Dockerfile",
-          "!phpunit.xml"
+          "!phpunit.xml",
+          "!public/app/**"
         ]
       },
       {
