@@ -127,6 +127,7 @@ export default function App() {
   const [file, setFile] = useState(null);
   const [sender, setSender] = useState('');
   const [appPassword, setAppPassword] = useState('');
+  const [useCustomSmtp, setUseCustomSmtp] = useState(false);
   const [sending, setSending] = useState(false);
   // result: null | { type: 'success' | 'error', messages: string[] }
   const [result, setResult] = useState(null);
@@ -216,8 +217,13 @@ export default function App() {
     const form = new FormData();
     form.append('payload', jsonText);
     if (file) form.append('attachment', file);
-    if (sender.trim()) form.append('sender', sender.trim());
-    if (appPassword) form.append('app_password', appPassword);
+    // The default path deliberately sends neither field: the API retains its
+    // configured mailer and .env credentials. Only opt into SMTP overrides
+    // after the user explicitly enables them.
+    if (useCustomSmtp) {
+      if (sender.trim()) form.append('sender', sender.trim());
+      if (appPassword) form.append('app_password', appPassword);
+    }
 
     try {
       const res = await fetch(`${API_BASE}/api/send-email`, {
@@ -311,7 +317,15 @@ export default function App() {
         <div className="content">
           <section className="panel mail-settings">
             <h2 className="panel-title">{icons.mail(16)} Sender settings</h2>
-            <p className="settings-help">Leave the app password blank to use the existing mail settings on this server.</p>
+            <p className="settings-help">By default, messages use the existing mailer and credentials configured on this server.</p>
+            <label className="smtp-toggle">
+              <input
+                type="checkbox"
+                checked={useCustomSmtp}
+                onChange={(e) => setUseCustomSmtp(e.target.checked)}
+              />
+              Use a different Gmail sender for this email
+            </label>
             <label htmlFor="sender-input" className="field-label">Gmail address</label>
             <input
               id="sender-input"
@@ -320,6 +334,7 @@ export default function App() {
               onChange={(e) => setSender(e.target.value)}
               placeholder="you@gmail.com"
               autoComplete="email"
+              disabled={!useCustomSmtp}
             />
             <label htmlFor="app-password-input" className="field-label">Gmail app password <span>optional</span></label>
             <input
@@ -329,8 +344,9 @@ export default function App() {
               onChange={(e) => setAppPassword(e.target.value)}
               placeholder="16-character app password"
               autoComplete="off"
+              disabled={!useCustomSmtp}
             />
-            <p className="settings-help">Create one in your Google Account: <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noreferrer">Security → 2-Step Verification → App passwords</a>. Google requires 2-Step Verification first.</p>
+            <p className="settings-help">When using a different sender, leave the password blank to use the server's existing app password, or enter that sender's password. Create one in your Google Account: <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noreferrer">Security → 2-Step Verification → App passwords</a>.</p>
           </section>
 
           <section className="panel">

@@ -325,6 +325,26 @@ textarea:focus {
   outline: none;
 }
 
+.mail-settings input:disabled {
+  cursor: not-allowed;
+  background: #f8fafc;
+  color: var(--ink-faint);
+}
+
+.smtp-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 2px 0;
+  color: var(--ink-soft);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.smtp-toggle input {
+  margin: 0;
+}
+
 .settings-help {
   line-height: 1.5;
   margin: 0;
