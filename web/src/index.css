@@ -289,6 +289,47 @@ textarea:focus {
   box-shadow: 0 0 0 3px rgb(79 70 229 / 0.15);
 }
 
+.mail-settings {
+  display: grid;
+  gap: 9px;
+}
+
+.field-label {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.field-label span,
+.settings-help {
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.mail-settings input[type='email'],
+.mail-settings input[type='password'] {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--ink);
+  background: #fff;
+  font: inherit;
+}
+
+.mail-settings input:focus {
+  border-color: var(--brand);
+  outline: none;
+}
+
+.settings-help {
+  line-height: 1.5;
+  margin: 0;
+}
+
 input[type='file'] {
   width: 100%;
   font-size: 0.88rem;

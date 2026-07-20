@@ -125,6 +125,8 @@ const icons = {
 export default function App() {
   const [jsonText, setJsonText] = useState('');
   const [file, setFile] = useState(null);
+  const [sender, setSender] = useState('');
+  const [appPassword, setAppPassword] = useState('');
   const [sending, setSending] = useState(false);
   // result: null | { type: 'success' | 'error', messages: string[] }
   const [result, setResult] = useState(null);
@@ -148,6 +150,23 @@ export default function App() {
     ping();
     const id = setInterval(ping, 30000);
     return () => { cancelled = true; clearInterval(id); };
+  }, []);
+
+  // The API provides only the non-sensitive configured sender. The existing
+  // .env app password is deliberately never exposed to the browser.
+  useEffect(() => {
+    let cancelled = false;
+    async function loadMailSettings() {
+      try {
+        const res = await fetch(`${API_BASE}/api/mail-settings`);
+        const data = await res.json();
+        if (!cancelled && typeof data.sender === 'string') setSender(data.sender);
+      } catch {
+        // Sending without overrides still uses the API's .env mail settings.
+      }
+    }
+    loadMailSettings();
+    return () => { cancelled = true; };
   }, []);
 
   // Why useMemo instead of validating in a change handler: validation is a pure
@@ -197,6 +216,8 @@ export default function App() {
     const form = new FormData();
     form.append('payload', jsonText);
     if (file) form.append('attachment', file);
+    if (sender.trim()) form.append('sender', sender.trim());
+    if (appPassword) form.append('app_password', appPassword);
 
     try {
       const res = await fetch(`${API_BASE}/api/send-email`, {
@@ -212,6 +233,7 @@ export default function App() {
         // Reset the form after success so the next send starts clean.
         setJsonText('');
         setFile(null);
+        setAppPassword('');
         if (fileInputRef.current) fileInputRef.current.value = '';
       } else if (res.status === 422 && data?.errors) {
         // Laravel's field-keyed errors object → flat list of readable messages.
@@ -287,6 +309,30 @@ export default function App() {
         </aside>
 
         <div className="content">
+          <section className="panel mail-settings">
+            <h2 className="panel-title">{icons.mail(16)} Sender settings</h2>
+            <p className="settings-help">Leave the app password blank to use the existing mail settings on this server.</p>
+            <label htmlFor="sender-input" className="field-label">Gmail address</label>
+            <input
+              id="sender-input"
+              type="email"
+              value={sender}
+              onChange={(e) => setSender(e.target.value)}
+              placeholder="you@gmail.com"
+              autoComplete="email"
+            />
+            <label htmlFor="app-password-input" className="field-label">Gmail app password <span>optional</span></label>
+            <input
+              id="app-password-input"
+              type="password"
+              value={appPassword}
+              onChange={(e) => setAppPassword(e.target.value)}
+              placeholder="16-character app password"
+              autoComplete="off"
+            />
+            <p className="settings-help">Create one in your Google Account: <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noreferrer">Security → 2-Step Verification → App passwords</a>. Google requires 2-Step Verification first.</p>
+          </section>
+
           <section className="panel">
             <div className="panel-head">
               <label htmlFor="json-input" className="label-icon">{icons.code(16)} JSON from the GPT</label>

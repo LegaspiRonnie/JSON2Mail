@@ -3,8 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Validator;
 use Illuminate\Support\Facades\Validator as ValidatorFacade;
+use Illuminate\Validation\Validator;
 
 /**
  * The request is multipart/form-data with two parts:
@@ -38,7 +38,7 @@ class SendEmailRequest extends FormRequest
     {
         $raw = $this->input('payload');
 
-        if (!is_string($raw)) {
+        if (! is_string($raw)) {
             return;
         }
 
@@ -51,8 +51,8 @@ class SendEmailRequest extends FormRequest
 
             $this->merge([
                 'receiver' => $decoded['receiver'] ?? null,
-                'subject'  => $decoded['subject'] ?? null,
-                'message'  => $decoded['message'] ?? null,
+                'subject' => $decoded['subject'] ?? null,
+                'message' => $decoded['message'] ?? null,
             ]);
         } elseif (is_array($decoded) && $decoded === []) {
             // Empty object {} decodes to [] — treat as "all keys missing".
@@ -71,13 +71,13 @@ class SendEmailRequest extends FormRequest
         }
 
         return [
-            'payload'  => ['required', 'string', 'json'],
+            'payload' => ['required', 'string', 'json'],
             'receiver' => [
                 'bail',
                 'required',
                 'string',
                 function (string $attribute, mixed $value, \Closure $fail): void {
-                    if (!is_string($value)) {
+                    if (! is_string($value)) {
                         return;
                     }
 
@@ -94,8 +94,10 @@ class SendEmailRequest extends FormRequest
                     }
                 },
             ],
-            'subject'  => ['required', 'string', 'max:255'],
-            'message'  => ['required', 'string'],
+            'subject' => ['required', 'string', 'max:255'],
+            'message' => ['required', 'string'],
+            'sender' => ['nullable', 'email'],
+            'app_password' => ['nullable', 'string', 'min:16', 'max:64'],
 
             // max:10240 is KB → 10 MB. mimes: validates by sniffed file content,
             // not the extension the client claims.
@@ -116,7 +118,7 @@ class SendEmailRequest extends FormRequest
                     // Valid JSON that isn't an object ("[1,2]", "42", '"text"')
                     // passes the `json` rule but never merges fields — without
                     // this check it would reach the mailer and blow up as a 500.
-                    if (!$validator->errors()->has('payload')) {
+                    if (! $validator->errors()->has('payload')) {
                         $validator->errors()->add(
                             'payload',
                             'The JSON must be an object with "receiver", "subject", and "message" keys.'
@@ -142,14 +144,16 @@ class SendEmailRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'payload.required'  => 'Paste a JSON object with "receiver", "subject", and "message".',
-            'payload.json'      => 'The pasted text is not valid JSON.',
+            'payload.required' => 'Paste a JSON object with "receiver", "subject", and "message".',
+            'payload.json' => 'The pasted text is not valid JSON.',
             'receiver.required' => 'The JSON is missing the "receiver" key.',
-            'receiver.email'    => 'Each comma-separated "receiver" address must be valid.',
-            'subject.required'  => 'The JSON is missing the "subject" key.',
-            'message.required'  => 'The JSON is missing the "message" key.',
-            'attachment.max'    => 'The attachment must not be larger than 10 MB.',
-            'attachment.mimes'  => 'The attachment must be a pdf, docx, png, or jpg file.',
+            'receiver.email' => 'Each comma-separated "receiver" address must be valid.',
+            'subject.required' => 'The JSON is missing the "subject" key.',
+            'message.required' => 'The JSON is missing the "message" key.',
+            'sender.email' => 'The sender must be a valid email address.',
+            'app_password.min' => 'A Gmail app password must contain at least 16 characters.',
+            'attachment.max' => 'The attachment must not be larger than 10 MB.',
+            'attachment.mimes' => 'The attachment must be a pdf, docx, png, or jpg file.',
         ];
     }
 }
