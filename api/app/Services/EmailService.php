@@ -13,7 +13,9 @@ class EmailService
         $subject = strip_tags($data['subject']);
         $message = strip_tags($data['message']);
 
-        Mail::to($data['receiver'])
+        $recipients = array_map('trim', explode(',', $data['receiver']));
+
+        Mail::to($recipients)
             ->send(new JsonMailable($subject, $message, $attachment));
     }
 }

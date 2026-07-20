@@ -65,8 +65,11 @@ export function validatePayload(raw) {
   }
 
   // 5. Value checks (only when the key exists, to avoid stacked noise)
-  if (typeof parsed.receiver === 'string' && parsed.receiver.trim() !== '' && !EMAIL_RE.test(parsed.receiver)) {
-    errors.push('"receiver" must be a valid email address.');
+  if (typeof parsed.receiver === 'string' && parsed.receiver.trim() !== '') {
+    const recipients = parsed.receiver.split(',').map((address) => address.trim());
+    if (recipients.some((address) => !EMAIL_RE.test(address))) {
+      errors.push('Each comma-separated "receiver" address must be valid.');
+    }
   }
   if (typeof parsed.subject === 'string' && parsed.subject.length > 255) {
     errors.push('"subject" must be 255 characters or fewer.');

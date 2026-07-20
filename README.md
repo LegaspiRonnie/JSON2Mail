@@ -2,6 +2,8 @@
 
 Paste JSON, get a branded email. Laravel API (`api/`) + React SPA (`web/`).
 
+The `receiver` value accepts one or more email addresses separated by commas, for example: `"receiver": "test1@gmail.com, test2@gmail.com"`.
+
 ## Run locally
 
 Requirements: PHP 8.3+, Composer, Node 20+.

@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
+use Illuminate\Support\Facades\Validator as ValidatorFacade;
 
 /**
  * The request is multipart/form-data with two parts:
@@ -71,7 +72,28 @@ class SendEmailRequest extends FormRequest
 
         return [
             'payload'  => ['required', 'string', 'json'],
-            'receiver' => ['required', 'email'],
+            'receiver' => [
+                'bail',
+                'required',
+                'string',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (!is_string($value)) {
+                        return;
+                    }
+
+                    foreach (array_map('trim', explode(',', $value)) as $recipient) {
+                        if ($recipient === '' || ValidatorFacade::make([
+                            'email' => $recipient,
+                        ], [
+                            'email' => ['email'],
+                        ])->fails()) {
+                            $fail('Each comma-separated "receiver" address must be valid.');
+
+                            return;
+                        }
+                    }
+                },
+            ],
             'subject'  => ['required', 'string', 'max:255'],
             'message'  => ['required', 'string'],
 
@@ -123,7 +145,7 @@ class SendEmailRequest extends FormRequest
             'payload.required'  => 'Paste a JSON object with "receiver", "subject", and "message".',
             'payload.json'      => 'The pasted text is not valid JSON.',
             'receiver.required' => 'The JSON is missing the "receiver" key.',
-            'receiver.email'    => 'The "receiver" value must be a valid email address.',
+            'receiver.email'    => 'Each comma-separated "receiver" address must be valid.',
             'subject.required'  => 'The JSON is missing the "subject" key.',
             'message.required'  => 'The JSON is missing the "message" key.',
             'attachment.max'    => 'The attachment must not be larger than 10 MB.',

@@ -6,7 +6,7 @@ import { validatePayload, validateAttachment } from './lib/validatePayload';
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8999';
 
 const PLACEHOLDER = `{
-  "receiver": "example@email.com",
+  "receiver": "example@email.com, second@example.com",
   "subject": "Job Application",
   "message": "Hello..."
 }`;
